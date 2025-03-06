@@ -22,6 +22,16 @@ const client = new Client({
  //  port: 5432,
 });
 
+const cors = require('cors');
+app.use(cors({
+    origin: 'https://project-svme.onrender.com', // Your frontend URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.options('*', cors()); // Handles CORS preflight requests
+
+
 client.connect()
     .then(() => console.log('Connected to PostgreSQL database'))
     .catch(err => console.error('Database connection error:', err.stack));
