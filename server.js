@@ -6,21 +6,20 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const Razorpay = require('razorpay');
-const cors = require('cors');
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use Render's PORT if available
 
 const client = new Client({
- // user: 'postgres',
- // host: 'localhost',
- // database: 'next_auth',
- // password: 'alok@1234',
- // port: 5432,
+    user: 'root',
+    host: 'dpg-cv4k5c0fnakc73bovokg-a',
+    database: 'next_auth_65sq',
+    password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
+    port: 5432,
 
-user: 'root',
-host: 'dpg-cv4k5c0fnakc73bovokg-a',
-database: 'next_auth_65sq',
-password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
-port: 5432,
+ //  user: 'postgres',
+ //  host: 'localhost',
+ //  database: 'next_auth',
+ //  password: 'alok@1234',
+ //  port: 5432,
 });
 
 client.connect()
@@ -36,6 +35,15 @@ const uploadDir = path.join(__dirname, 'profile_images');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
+
+// Function to set CORS headers for all origins
+const setCorsHeaders = (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    console.log('CORS headers set: Allowing all origins');
+};
 
 // Function to check and create the `users` table
 const checkAndCreateUsersTable = async () => {
@@ -108,24 +116,18 @@ const setupTables = async () => {
 
 setupTables();
 
-// Function to set CORS headers
-const setCorsHeaders = (res) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://project-svme.onrender.com'); // Replace with your frontend origin
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-};
-
 const server = http.createServer(async (req, res) => {
-    // Handle preflight OPTIONS requests for forgot password-related endpoints
-    if (req.method === 'OPTIONS' && (
-        req.url === '/forgot-password' || 
-        req.url === '/verify-mobile' || 
-        req.url === '/reset-password'
-    )) {
-        setCorsHeaders(res);
+    // Apply CORS headers to all responses
+    setCorsHeaders(res);
+
+    // Log every incoming request for debugging
+    console.log(`Request received: ${req.method} ${req.url}`);
+
+    // Handle CORS preflight OPTIONS requests
+    if (req.method === 'OPTIONS') {
         res.writeHead(204);
         res.end();
+        console.log('Handled OPTIONS preflight request');
         return;
     }
 
@@ -179,9 +181,8 @@ const server = http.createServer(async (req, res) => {
         });
     }
 
-    // Handle POST /forgot-password with CORS
+    // Handle POST /forgot-password
     else if (req.method === 'POST' && req.url === '/forgot-password') {
-        setCorsHeaders(res); // Add CORS headers
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
@@ -221,9 +222,8 @@ const server = http.createServer(async (req, res) => {
         });
     }
 
-    // Handle POST /verify-mobile with CORS
+    // Handle POST /verify-mobile
     else if (req.method === 'POST' && req.url === '/verify-mobile') {
-        setCorsHeaders(res); // Add CORS headers
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
@@ -286,9 +286,8 @@ const server = http.createServer(async (req, res) => {
         });
     }
 
-    // Handle POST /reset-password with CORS
+    // Handle POST /reset-password
     else if (req.method === 'POST' && req.url === '/reset-password') {
-        setCorsHeaders(res); // Add CORS headers
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
