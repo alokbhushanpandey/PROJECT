@@ -6,56 +6,36 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const Razorpay = require('razorpay');
-const cors = require('cors');
 
 const PORT = 3000;
 
-//DATABASE_URL='postgres://root:WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX@dpg-cv4k5c0fnakc73bovokg-a:5432/next_auth_65sq'
-app.use(cors({
-    origin: 'https://project-svme.onrender.com', // Allow requests only from your frontend
-    methods: ['GET', 'POST'], // Allow required HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'] // Allow required headers
-}));
-
-app.use(cors());
-
 const client = new Client({
-  user: 'root',
-  host: 'dpg-cv4k5c0fnakc73bovokg-a',
-  database: 'next_auth_65sq',
-  password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
-  port: 5432,
-//
-// user: 'postgres',
-// host: 'localhost',
-// database: 'next_auth',
-// password: 'alok@1234',
-// port: 5432,
- //connectionString: process.env.DATABASE_URL,
- //ssl: {
- //    rejectUnauthorized: false, // Required for Render PostgreSQL
- //}
+ //  user: 'postgres',
+ //  host: 'localhost',
+ //  database: 'next_auth',
+ //  password: 'alok@1234',
+ //  port: 5432,
+
+ user: 'root',
+ host: 'dpg-cv4k5c0fnakc73bovokg-a',
+ database: 'next_auth_65sq',
+ password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
+ port: 5432,
 });
 
 client.connect()
     .then(() => console.log('Connected to PostgreSQL database'))
     .catch(err => console.error('Database connection error:', err.stack));
+
 const razorpay = new Razorpay({
     key_id: "YOUR_RAZORPAY_KEY", // Replace with your Razorpay Key ID
     key_secret: "YOUR_RAZORPAY_SECRET" // Replace with your Razorpay Secret
 });
 
-  
-  
-  
-
 const uploadDir = path.join(__dirname, 'profile_images');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
-
-
-
 
 // Function to check and create the `users` table
 const checkAndCreateUsersTable = async () => {
@@ -65,7 +45,6 @@ const checkAndCreateUsersTable = async () => {
 
     if (tableCheck.rowCount === 0) {
         console.log("Table 'users' does not exist. Creating...");
-
         const createTableQuery = `
             CREATE TABLE public.users (
                 id SERIAL PRIMARY KEY,
@@ -83,7 +62,6 @@ const checkAndCreateUsersTable = async () => {
                 profile_image TEXT
             );
         `;
-
         await client.query(createTableQuery);
         console.log("Table 'users' created successfully.");
     } else {
@@ -99,7 +77,6 @@ const checkAndCreateEventsTable = async () => {
 
     if (tableCheck.rowCount === 0) {
         console.log("Table 'events' does not exist. Creating...");
-
         const createTableQuery = `
             CREATE TABLE public.events (
                 id SERIAL PRIMARY KEY,
@@ -112,7 +89,6 @@ const checkAndCreateEventsTable = async () => {
                 end_time TIME
             );
         `;
-
         await client.query(createTableQuery);
         console.log("Table 'events' created successfully.");
     } else {
@@ -132,9 +108,27 @@ const setupTables = async () => {
 
 setupTables();
 
-
+// Function to set CORS headers
+const setCorsHeaders = (res) => {
+    res.setHeader('Access-Control-Allow-Origin', 'https://project-svme.onrender.com'); // Replace with your frontend origin
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+};
 
 const server = http.createServer(async (req, res) => {
+    // Handle preflight OPTIONS requests for forgot password-related endpoints
+    if (req.method === 'OPTIONS' && (
+        req.url === '/forgot-password' || 
+        req.url === '/verify-mobile' || 
+        req.url === '/reset-password'
+    )) {
+        setCorsHeaders(res);
+        res.writeHead(204);
+        res.end();
+        return;
+    }
+
     if (req.method === 'POST' && req.url === '/update-address') {
         const cookies = parseCookies(req);
         const userId = cookies.user_id;
@@ -184,86 +178,180 @@ const server = http.createServer(async (req, res) => {
             }
         });
     }
-    
- // Handle POST /forgot-password
- else if (req.method === 'POST' && req.url === '/forgot-password') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', async () => {
-        try {
-            const data = qs.parse(body);
-            const { email, mobile } = data;
 
-            if (!email || !mobile) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, message: 'Email and mobile are required' }));
-                return;
-            }
+    // Handle POST /forgot-password with CORS
+    else if (req.method === 'POST' && req.url === '/forgot-password') {
+        setCorsHeaders(res); // Add CORS headers
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const data = qs.parse(body);
+                const { email, mobile } = data;
 
-            const result = await client.query(
-                'SELECT id FROM users WHERE email = $1 AND mobile = $2',
-                [email, mobile]
-            );
+                if (!email || !mobile) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, message: 'Email and mobile are required' }));
+                    return;
+                }
 
-            if (result.rows.length > 0) {
-                // Generate a reset token (optional, for email verification)
-                const token = crypto.randomBytes(20).toString('hex');
-                await client.query(
-                    'UPDATE users SET reset_token = $1, reset_token_expiry = NOW() + INTERVAL \'1 hour\' WHERE email = $2',
-                    [token, email]
+                const result = await client.query(
+                    'SELECT id FROM users WHERE email = $1 AND mobile = $2',
+                    [email, mobile]
                 );
 
+                if (result.rows.length > 0) {
+                    const token = crypto.randomBytes(20).toString('hex');
+                    await client.query(
+                        'UPDATE users SET reset_token = $1, reset_token_expiry = NOW() + INTERVAL \'1 hour\' WHERE email = $2',
+                        [token, email]
+                    );
+
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: true, message: 'Validation successful. Enter new password.' }));
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, message: 'Email or mobile not found' }));
+                }
+            } catch (err) {
+                console.error('Error in forgot-password:', err.stack);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, message: 'Server error', details: err.message }));
+            }
+        });
+    }
+
+    // Handle POST /verify-mobile with CORS
+    else if (req.method === 'POST' && req.url === '/verify-mobile') {
+        setCorsHeaders(res); // Add CORS headers
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const data = qs.parse(body);
+                const { email, mobile } = data;
+
+                if (!email || !mobile) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: false, 
+                        mobileVerified: false,
+                        message: 'Email and mobile number are required' 
+                    }));
+                    return;
+                }
+
+                const result = await client.query(
+                    'SELECT mobile FROM users WHERE email = $1',
+                    [email]
+                );
+
+                if (result.rows.length === 0) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: false, 
+                        mobileVerified: false,
+                        message: 'Email not found' 
+                    }));
+                    return;
+                }
+
+                const storedMobile = result.rows[0].mobile;
+                if (storedMobile !== mobile) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: false, 
+                        mobileVerified: false,
+                        message: 'Mobile number does not match the email' 
+                    }));
+                    return;
+                }
+
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true, message: 'Validation successful. Enter new password.' }));
-            } else {
-                res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, message: 'Email or mobile not found' }));
+                res.end(JSON.stringify({ 
+                    success: true, 
+                    mobileVerified: true,
+                    message: 'Mobile number verified' 
+                }));
+            } catch (err) {
+                console.error('Error in verify-mobile:', err.stack);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 
+                    success: false, 
+                    mobileVerified: false,
+                    message: 'Server error occurred', 
+                    details: err.message 
+                }));
             }
-        } catch (err) {
-            console.error('Error in forgot-password:', err.stack);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, message: 'Server error', details: err.message }));
-        }
-    });
-}
+        });
+    }
 
-// Handle POST /reset-password
-else if (req.method === 'POST' && req.url === '/reset-password') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', async () => {
-        try {
-            const data = qs.parse(body);
-            const { email, mobile, newPassword } = data;
+    // Handle POST /reset-password with CORS
+    else if (req.method === 'POST' && req.url === '/reset-password') {
+        setCorsHeaders(res); // Add CORS headers
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const data = qs.parse(body);
+                const { email, mobile, newPassword } = data;
 
-            if (!email || !mobile || !newPassword) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, message: 'All fields are required' }));
-                return;
+                if (!email || !mobile || !newPassword) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: false, 
+                        message: 'Email, mobile number, and new password are required' 
+                    }));
+                    return;
+                }
+
+                const userResult = await client.query(
+                    'SELECT id FROM users WHERE email = $1 AND mobile = $2',
+                    [email, mobile]
+                );
+
+                if (userResult.rows.length === 0) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: false, 
+                        message: 'Email and mobile number combination is invalid' 
+                    }));
+                    return;
+                }
+
+                const hashedPassword = crypto.createHash('sha256')
+                    .update(newPassword)
+                    .digest('hex');
+
+                const updateResult = await client.query(
+                    'UPDATE users SET password = $1 WHERE email = $2 AND mobile = $3 RETURNING id',
+                    [hashedPassword, email, mobile]
+                );
+
+                if (updateResult.rows.length > 0) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: true, 
+                        message: 'Password has been reset successfully' 
+                    }));
+                } else {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: false, 
+                        message: 'Failed to reset password' 
+                    }));
+                }
+            } catch (err) {
+                console.error('Error in reset-password:', err.stack);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 
+                    success: false, 
+                    message: 'Server error occurred', 
+                    details: err.message 
+                }));
             }
-
-            const hashedPassword = crypto.createHash('sha256').update(newPassword).digest('hex');
-
-            const result = await client.query(
-                'UPDATE users SET password = $1 WHERE email = $2 AND mobile = $3 RETURNING id',
-                [hashedPassword, email, mobile]
-            );
-
-            if (result.rows.length > 0) {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true, message: 'Password reset successful' }));
-            } else {
-                res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, message: 'User not found' }));
-            }
-        } catch (err) {
-            console.error('Error in reset-password:', err.stack);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, message: 'Server error', details: err.message }));
-        }
-    });
-}
-
+        });
+    }
 
     else if (req.method === 'POST' && req.url === '/upload-photo') {
         const cookies = parseCookies(req);
@@ -322,6 +410,7 @@ else if (req.method === 'POST' && req.url === '/reset-password') {
             res.end(JSON.stringify({ success: false, error: 'Upload error', details: err.message }));
         }
     }
+
     else if (req.method === 'GET') {
         if (req.url.startsWith('/checkEmail')) {
             const urlParams = new URL(req.url, `http://${req.headers.host}`);
@@ -429,8 +518,6 @@ else if (req.method === 'POST' && req.url === '/reset-password') {
                 res.end(JSON.stringify({ error: 'Database error', details: err.message }));
             }
         }
-
-
         else if (req.url === '/logout') {
             res.writeHead(302, {
                 'Content-Type': 'text/plain',
@@ -467,6 +554,7 @@ else if (req.method === 'POST' && req.url === '/reset-password') {
             }
         }
     }
+
     else if (req.method === 'POST' && req.url === '/signup') {
         let body = '';
         req.on('data', chunk => body += chunk);
@@ -511,6 +599,7 @@ else if (req.method === 'POST' && req.url === '/reset-password') {
             }
         });
     }
+
     else if (req.method === 'POST' && req.url === '/login') {
         let body = '';
         req.on('data', chunk => body += chunk);
@@ -547,7 +636,7 @@ else if (req.method === 'POST' && req.url === '/reset-password') {
             }
         });
     }
-    // New endpoint for payment verification
+
     else if (req.method === 'POST' && req.url === '/verify-payment') {
         let body = '';
         req.on('data', chunk => body += chunk);
@@ -562,19 +651,18 @@ else if (req.method === 'POST' && req.url === '/reset-password') {
                     return;
                 }
 
-                const expectedSignature = crypto.createHmac('sha256', "YOUR_RAZORPAY_SECRET") // Replace with your Razorpay Secret
+                const expectedSignature = crypto.createHmac('sha256', "YOUR_RAZORPAY_SECRET")
                     .update(razorpay_order_id + "|" + razorpay_payment_id)
                     .digest('hex');
 
                 if (expectedSignature === razorpay_signature) {
-                    // Update payment status in the database
                     const cookies = parseCookies(req);
                     const userId = cookies.user_id;
 
                     if (userId) {
                         await client.query(
                             'UPDATE users SET payment_status = $1, payment_amount = $2 WHERE id = $3',
-                            ['Paid', 500.00, userId] // Adjust payment_amount as needed
+                            ['Paid', 500.00, userId]
                         );
                         console.log(`Payment verified and updated for user ${userId}`);
                     }
@@ -593,138 +681,6 @@ else if (req.method === 'POST' && req.url === '/reset-password') {
         });
     }
 
- 
-    // Handle POST /verify-mobile (Real-time mobile number validation)
-    else if (req.method === 'POST' && req.url === '/verify-mobile') {
-        let body = '';
-        req.on('data', chunk => body += chunk);
-        req.on('end', async () => {
-            try {
-                const data = qs.parse(body);
-                const { email, mobile } = data;
-
-                if (!email || !mobile) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ 
-                        success: false, 
-                        mobileVerified: false,
-                        message: 'Email and mobile number are required' 
-                    }));
-                    return;
-                }
-
-                const result = await client.query(
-                    'SELECT mobile FROM users WHERE email = $1',
-                    [email]
-                );
-
-                if (result.rows.length === 0) {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ 
-                        success: false, 
-                        mobileVerified: false,
-                        message: 'Email not found' 
-                    }));
-                    return;
-                }
-
-                const storedMobile = result.rows[0].mobile;
-                if (storedMobile !== mobile) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ 
-                        success: false, 
-                        mobileVerified: false,
-                        message: 'Mobile number does not match the email' 
-                    }));
-                    return;
-                }
-
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ 
-                    success: true, 
-                    mobileVerified: true,
-                    message: 'Mobile number verified' 
-                }));
-            } catch (err) {
-                console.error('Error in verify-mobile:', err.stack);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ 
-                    success: false, 
-                    mobileVerified: false,
-                    message: 'Server error occurred', 
-                    details: err.message 
-                }));
-            }
-        });
-    }
-
-    // Handle POST /reset-password
-    else if (req.method === 'POST' && req.url === '/reset-password') {
-        let body = '';
-        req.on('data', chunk => body += chunk);
-        req.on('end', async () => {
-            try {
-                const data = qs.parse(body);
-                const { email, mobile, newPassword } = data;
-
-                if (!email || !mobile || !newPassword) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ 
-                        success: false, 
-                        message: 'Email, mobile number, and new password are required' 
-                    }));
-                    return;
-                }
-
-                const userResult = await client.query(
-                    'SELECT id FROM users WHERE email = $1 AND mobile = $2',
-                    [email, mobile]
-                );
-
-                if (userResult.rows.length === 0) {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ 
-                        success: false, 
-                        message: 'Email and mobile number combination is invalid' 
-                    }));
-                    return;
-                }
-
-                const hashedPassword = crypto.createHash('sha256')
-                    .update(newPassword)
-                    .digest('hex');
-
-                const updateResult = await client.query(
-                    'UPDATE users SET password = $1 WHERE email = $2 AND mobile = $3 RETURNING id',
-                    [hashedPassword, email, mobile]
-                );
-
-                if (updateResult.rows.length > 0) {
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ 
-                        success: true, 
-                        message: 'Password has been reset successfully' 
-                    }));
-                } else {
-                    res.writeHead(500, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ 
-                        success: false, 
-                        message: 'Failed to reset password' 
-                    }));
-                }
-            } catch (err) {
-                console.error('Error in reset-password:', err.stack);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ 
-                    success: false, 
-                    message: 'Server error occurred', 
-                    details: err.message 
-                }));
-            }
-        });
-    }
-
- 
     else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
