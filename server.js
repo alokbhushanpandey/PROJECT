@@ -6,23 +6,31 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const Razorpay = require('razorpay');
+const cors = require('cors');
+
 const PORT = 3000;
 
 //DATABASE_URL='postgres://root:WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX@dpg-cv4k5c0fnakc73bovokg-a:5432/next_auth_65sq'
+app.use(cors({
+    origin: 'https://project-svme.onrender.com', // Allow requests only from your frontend
+    methods: ['GET', 'POST'], // Allow required HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow required headers
+}));
 
+app.use(cors());
 
 const client = new Client({
-    user: 'root',
-    host: 'dpg-cv4k5c0fnakc73bovokg-a',
-    database: 'next_auth_65sq',
-    password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
-    port: 5432,
-
- //   user: 'postgres',
- //   host: 'localhost',
- //   database: 'next_auth',
- //   password: 'alok@1234',
- //   port: 5432,
+  user: 'root',
+  host: 'dpg-cv4k5c0fnakc73bovokg-a',
+  database: 'next_auth_65sq',
+  password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
+  port: 5432,
+//
+// user: 'postgres',
+// host: 'localhost',
+// database: 'next_auth',
+// password: 'alok@1234',
+// port: 5432,
  //connectionString: process.env.DATABASE_URL,
  //ssl: {
  //    rejectUnauthorized: false, // Required for Render PostgreSQL
