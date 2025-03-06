@@ -8,13 +8,19 @@ const formidable = require('formidable');
 const Razorpay = require('razorpay');
 const PORT = 3000;
 
+DATABASE_URL='postgres://root:WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX@dpg-cv4k5c0fnakc73bovokg-a:5432/next_auth_65sq'
+
 
 const client = new Client({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'next_auth',
-    password: 'alok@1234',
-    port: 5432,
+ //   user: 'postgres',
+ //   host: 'localhost',
+ //   database: 'next_auth',
+ //   password: 'alok@1234',
+ //   port: 5432,
+ connectionString: process.env.DATABASE_URL,
+ ssl: {
+     rejectUnauthorized: false, // Required for Render PostgreSQL
+ }
 });
 
 client.connect()
