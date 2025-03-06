@@ -7,7 +7,7 @@ const path = require('path');
 const formidable = require('formidable');
 const Razorpay = require('razorpay');
 const PORT = process.env.PORT || 3000; // Use Render's PORT if available
-
+const express = require('express');
 const client = new Client({
     user: 'root',
     host: 'dpg-cv4k5c0fnakc73bovokg-a',
@@ -22,7 +22,7 @@ const client = new Client({
  //  port: 5432,
 });
 
-const cors = require('cors');
+// Add CORS middleware
 app.use(cors({
     origin: 'https://project-svme.onrender.com', // Your frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -30,6 +30,10 @@ app.use(cors({
 }));
 
 app.options('*', cors()); // Handles CORS preflight requests
+
+// Middleware to parse JSON and URL-encoded bodies (replacing qs.parse in some cases)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 client.connect()
