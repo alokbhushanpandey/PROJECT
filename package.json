@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "formidable": "^3.5.2",
+    "pg": "^8.13.3",
+    "querystring": "^0.2.1",
+    "razorpay": "^2.9.6"
+  }
+}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="smain-header">
+        <div class="slogo">
+            <img src="../profile_images/4-1741057164235.png" alt="Event Portal Logo" class="slogo-img">
+            <span class="slogo-text">Event Portal</span>
+        </div>
+    </header>
+
+    <div class="signup-container">
+        <h2>Sign Up</h2>
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name">
+                <small id="fullName-status" style="color: red;"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email">
+                <small id="email-status" style="color: red;"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" id="password" name="password" required placeholder="Create a password">
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password *</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password">
+            </div>
+
+            <div class="form-group">
+                <label for="dob">Date of Birth *</label>
+                <input type="date" id="dob" name="dob" required>
+            </div>
+
+            <div class="form-group">
+                <label for="sex">Sex *</label>
+                <select id="sex" name="sex" required>
+                    <option value="">Select your sex</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Country *</label>
+                <select id="country" name="country" required>
+                    <option value="">Select your country</option>
+               
+                    <option value="india">India</option>
+                 
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="mobile">Mobile Number *</label>
+                <input type="tel" id="mobile" name="mobile" required placeholder="Enter your mobile number">
+                <small id="mobile-status" style="color: red;"></small>
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+    </div>
+
+    <script>
+        // Check Email Availability
+        document.getElementById('email').addEventListener('input', async function() {
+            const email = this.value;
+            if (!email.includes('@') || email.length < 5) {
+                document.getElementById('email-status').textContent = '';
+                return;
+            }
+    
+            const response = await fetch(`/checkEmail?email=${encodeURIComponent(email)}`);
+            const result = await response.json();
+    
+            if (result.exists) {
+                document.getElementById('email-status').textContent = 'Email is already taken!';
+                document.getElementById('email-status').style.color = 'red';
+            } else {
+                document.getElementById('email-status').textContent = 'Email is available!';
+                document.getElementById('email-status').style.color = 'green';
+            }
+        });
+    
+        // Check Mobile Number Availability
+        document.getElementById('mobile').addEventListener('input', async function() {
+            const mobile = this.value;
+            if (mobile.length < 10) {
+                document.getElementById('mobile-status').textContent = '';
+                return;
+            }
+    
+            const response = await fetch(`/checkMobile?mobile=${encodeURIComponent(mobile)}`);
+            const result = await response.json();
+    
+            if (result.exists) {
+                document.getElementById('mobile-status').textContent = 'Mobile number is already taken!';
+                document.getElementById('mobile-status').style.color = 'red';
+            } else {
+                document.getElementById('mobile-status').textContent = 'Mobile number is available!';
+                document.getElementById('mobile-status').style.color = 'green';
+            }
+        });
+    
+        // Redirect after successful signup
+        document.getElementById('signupForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+    
+            const formData = new FormData(this);
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+    
+            if (password !== confirmPassword) {
+                alert('Passwords do not match.');
+                return;
+            }
+    
+            const response = await fetch('/signup', {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            });
+    
+            const result = await response.text();
+            alert(result);
+            if (response.ok) window.location.href = 'login.html';
+        });
+    </script>
+    
+    
+    
+</body>
+</html>
