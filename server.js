@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const Razorpay = require('razorpay');
-
+const cors = require('cors');
 const PORT = 3000;
 
 const client = new Client({
