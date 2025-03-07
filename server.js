@@ -9,17 +9,17 @@ const Razorpay = require('razorpay');
 const PORT = process.env.PORT || 3000; // Use Render's PORT if available
 
 const client = new Client({
- //  user: 'root',
- //  host: 'dpg-cv4k5c0fnakc73bovokg-a',
- //  database: 'next_auth_65sq',
- //  password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
- //  port: 5432,
-//
-  user: 'postgres',
-  host: 'localhost',
-  database: 'next_auth',
-  password: 'alok@1234',
+  user: 'root',
+  host: 'dpg-cv4k5c0fnakc73bovokg-a',
+  database: 'next_auth_65sq',
+  password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
   port: 5432,
+//
+//  user: 'postgres',
+//  host: 'localhost',
+//  database: 'next_auth',
+//  password: 'alok@1234',
+//  port: 5432,
 });
 
 
