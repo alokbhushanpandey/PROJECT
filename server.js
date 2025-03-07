@@ -41,8 +41,18 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Function to set CORS headers for all origins
-const setCorsHeaders = (res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins
+const allowedOrigins = [
+    'https://project-svme.onrender.com',
+    'https://project-svme.onrender.com/forgot-password.html',
+    'https://your-backend.onrender.com/verify-mobile'
+];
+
+const setCorsHeaders = (res, origin) => {
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+        res.setHeader('Access-Control-Allow-Origin', 'https://project-svme.onrender.com'); // Default allowed origin
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
