@@ -34,15 +34,28 @@
             text-align: right;
         }
         .close-btn {
-            font-size: 20px;
-            cursor: pointer;
+            width: 35px; /* Set a fixed width */
+            height: 35px; /* Set a fixed height */
+            background-color: #007BFF; /* Blue background */
+            color: white; /* White "X" */
             border: none;
-            background: none;
-            color: #333; /* Darker grey for contrast */
+            border-radius: 50%; /* Makes it circular */
+            cursor: pointer;
+            font-size: 20px; /* Adjust size of "×" */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 10px; /* Adjust for spacing */
+            right: 10px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Optional: adds a soft shadow */
         }
+
         .close-btn:hover {
-            color: #000; /* Slightly darker on hover */
+            background-color: #0056b3; /* Darker blue on hover */
         }
+
+     
         .form-group {
             margin-bottom: 15px;
         }
@@ -104,9 +117,9 @@
     <!-- Popup for Forgot Password -->
     <div class="popup" id="forgotPasswordPopup">
         <div class="popup-content">
-            <div class="popup-header">
+            
                 <button class="close-btn" id="closePopup">×</button>
-            </div>
+       
             <h2>Forgot Password</h2>
             <form id="forgotPasswordForm">
                 <div class="form-group">
