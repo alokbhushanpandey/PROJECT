@@ -6,21 +6,20 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const Razorpay = require('razorpay');
-//const PORT = process.env.PORT || 3000; // Use Render's PORT if available
-const PORT = process.env.PORT || 10000; // Default to Render's port
+const PORT = process.env.PORT || 3000; // Use Render's PORT if available
 
 const client = new Client({
-   user: 'root',
-   host: 'dpg-cv4k5c0fnakc73bovokg-a',
-   database: 'next_auth_65sq',
-   password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
-   port: 5432,
-
-//  user: 'postgres',
-//  host: 'localhost',
-//  database: 'next_auth',
-//  password: 'alok@1234',
-//  port: 5432,
+ //  user: 'root',
+ //  host: 'dpg-cv4k5c0fnakc73bovokg-a',
+ //  database: 'next_auth_65sq',
+ //  password: 'WWD4LlFkKzyt2WfWhTjIRWox60f8EtiX',
+ //  port: 5432,
+//
+  user: 'postgres',
+  host: 'localhost',
+  database: 'next_auth',
+  password: 'alok@1234',
+  port: 5432,
 });
 
 
@@ -42,23 +41,13 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Function to set CORS headers for all origins
-const allowedOrigins = [
-    'https://project-svme.onrender.com',
-    'https://project-svme.onrender.com/forgot-password.html',
-    'https://your-backend.onrender.com/verify-mobile',
-    'http://localhost:3000/'
-];
-
-const setCorsHeaders = (res, origin) => {
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-        res.setHeader('Access-Control-Allow-Origin', 'https://project-svme.onrender.com'); // Default allowed origin
-    }
+const setCorsHeaders = (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
 };
+
 
 
 // Function to check and create the `users` table
