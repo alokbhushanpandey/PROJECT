@@ -6,7 +6,8 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const Razorpay = require('razorpay');
-const PORT = process.env.PORT || 3000; // Use Render's PORT if available
+//const PORT = process.env.PORT || 3000; // Use Render's PORT if available
+const PORT = process.env.PORT || 10000; // Default to Render's port
 
 const client = new Client({
    user: 'root',
@@ -44,7 +45,8 @@ if (!fs.existsSync(uploadDir)) {
 const allowedOrigins = [
     'https://project-svme.onrender.com',
     'https://project-svme.onrender.com/forgot-password.html',
-    'https://your-backend.onrender.com/verify-mobile'
+    'https://your-backend.onrender.com/verify-mobile',
+    'http://localhost:3000/'
 ];
 
 const setCorsHeaders = (res, origin) => {
