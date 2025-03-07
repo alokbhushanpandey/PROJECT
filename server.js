@@ -41,29 +41,14 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Function to set CORS headers for all origins
-const allowedOrigins = [
-    'https://project-svme.onrender.com/forgot-password.html',  // Original frontend origin
-    'https://your-backend.onrender.com/verify-mobile',   // New backend origin
-    'http://localhost:3000'                // Optional: for local development
-];
-
-// Function to set CORS headers with multiple origin support
-const setCorsHeaders = (req, res) => {
-    const origin = req.headers.origin; // Get the origin from the request headers
-
-    // Check if the request origin is in the allowed list
-    if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin); // Echo the matching origin
-    } else {
-        // Fallback to a default origin or reject (for this example, we'll use the first allowed origin)
-        res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
-    }
-
+const setCorsHeaders = (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-    console.log(`CORS headers set: Allowing origin ${res.getHeader('Access-Control-Allow-Origin')}`);
+    console.log('CORS headers set: Allowing all origins');
 };
+
 // Function to check and create the `users` table
 const checkAndCreateUsersTable = async () => {
     const tableCheck = await client.query(
