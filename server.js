@@ -46,8 +46,8 @@ const setCorsHeaders = (res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-    console.log('CORS headers set: Allowing all origins');
 };
+
 
 // Function to check and create the `users` table
 const checkAndCreateUsersTable = async () => {
